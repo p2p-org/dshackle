@@ -314,11 +314,15 @@ tasks.withType(Detekt).configureEach {
 }
 
 task getVersion {
+    outputs.upToDateWhen { false }
     def exactVersion = 'git describe --tags --exact-match'.execute().text.trim()
     if (exactVersion) {
         version = exactVersion
     } else {
         def tag = 'git describe --tags --abbrev=0'.execute().text.trim()
+        if (!tag) {
+            throw new GradleException("No tags found")
+        }
         def m = tag =~ /\.(\d+)$/
         def match = m[0][1]
         def next = match.toInteger() + 1
