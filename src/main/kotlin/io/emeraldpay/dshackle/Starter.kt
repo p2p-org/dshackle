@@ -39,4 +39,24 @@ fun main(args: Array<String>) {
     app.setDefaultProperties(ResourcePropertySource("version.properties").source)
     app.setBanner(ResourceBanner(ClassPathResource("banner.txt")))
     app.run(*args)
+
+    val noticed = mutableSetOf<String>()
+
+    Thread {
+        while (true) {
+            Thread.getAllStackTraces().entries.forEach { e ->
+                if (e.key.name.startsWith("parallel-")) {
+                    val trace = e.value
+                        .filter { it.className.startsWith("io.emeraldpay.dshackle") }
+                        .joinToString("\n")
+
+                    if (!noticed.contains(trace)) {
+                        noticed.add(trace)
+                        log.warn("boy -> $trace")
+                    }
+                }
+            }
+            Thread.sleep(100)
+        }
+    }.start()
 }
