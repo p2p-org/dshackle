@@ -48,11 +48,7 @@ class ErrorSpanHandler(
                 }
             }
 
-        return if (spansInfo.hasError) {
-            spanMapper.writeValueAsString(spansInfo.spans)
-        } else {
-            ""
-        }
+        return spanMapper.writeValueAsString(spansInfo.spans)
     }
 
     private fun enrichErrorSpans(spanId: String, spansInfo: SpansInfo) {
