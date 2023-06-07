@@ -29,7 +29,7 @@ class ProviderSpanHandler(
         if (span.traceId().length > 20 && span.parentId() != null) {
             val spanList = spans.asMap().computeIfAbsent(span.parentId()) { mutableListOf() }
             spanList.add(span)
-            if (span.name().contains("txmemcache")) {
+            if (span.name().contains("TxMemCache", true)) {
                 try {
                     log.info(span.toString())
                 } catch (e: Exception) {
