@@ -7,7 +7,6 @@ import io.emeraldpay.dshackle.commons.SPAN_REQUEST_INFO
 import io.emeraldpay.dshackle.commons.SPAN_STATUS_MESSAGE
 import io.emeraldpay.dshackle.data.HashId
 import io.emeraldpay.dshackle.upstream.rpcclient.JsonRpcRequest
-import org.slf4j.LoggerFactory
 import org.springframework.cloud.sleuth.Tracer
 import org.springframework.cloud.sleuth.instrument.reactor.ReactorSleuth
 import reactor.core.publisher.Mono
@@ -19,10 +18,6 @@ class SpannedReader<K, D>(
     private val name: String,
     private val additionalParams: Map<String, String> = emptyMap()
 ) : Reader<K, D> {
-
-    companion object {
-        private val log = LoggerFactory.getLogger(SpannedReader::class.java)
-    }
 
     override fun read(key: K): Mono<D> {
         val newSpan = tracer.nextSpan(tracer.currentSpan())
@@ -46,7 +41,6 @@ class SpannedReader<K, D>(
             }
             .doOnNext { newSpan.end() }
             .switchIfEmpty {
-                log.info("${newSpan.context().traceId()} ${newSpan.context().spanId()} ${newSpan.context().parentId()}")
                 newSpan.tag(SPAN_READER_RESULT, "empty result")
                 newSpan.end()
                 Mono.empty()

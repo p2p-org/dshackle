@@ -5,6 +5,7 @@ import brave.handler.SpanHandler
 import brave.propagation.TraceContext
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.benmanes.caffeine.cache.Caffeine
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.cloud.sleuth.Span
 import java.time.Duration
@@ -14,6 +15,11 @@ class ProviderSpanHandler(
     private val spanMapper: ObjectMapper,
     private val spanExportableList: List<SpanExportable>
 ) : SpanHandler() {
+
+    companion object {
+        private val log = LoggerFactory.getLogger(ProviderSpanHandler::class.java)
+    }
+
     private val spans = Caffeine
         .newBuilder()
         .expireAfterWrite(Duration.ofMinutes(5))
@@ -23,6 +29,13 @@ class ProviderSpanHandler(
         if (span.traceId().length > 20 && span.parentId() != null) {
             val spanList = spans.asMap().computeIfAbsent(span.parentId()) { mutableListOf() }
             spanList.add(span)
+            if (span.name().contains("txmemcache")) {
+                try {
+                    log.info(span.toString())
+                } catch (e: Exception) {
+                    log.error("error parse")
+                }
+            }
         }
         return super.end(context, span, cause)
     }
